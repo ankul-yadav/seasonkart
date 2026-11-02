@@ -1,0 +1,3 @@
+# Add with:  crontab -e   (as the user that owns /var/www/seasonkart, e.g. "deploy")
+# Every night at 02:15 server time. Output goes to a log file; see DEPLOY.md for log rotation.
+15 2 * * * cd /var/www/seasonkart && /usr/bin/bash scripts/backup.sh >> /var/www/seasonkart/logs/backup.log 2>&1

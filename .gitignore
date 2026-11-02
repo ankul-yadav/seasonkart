@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+!.env.local.example
+node_modules/
+.git/
+*.log
+npm-debug.log*
+backups/
+public/uploads/
+*.sql.gz
+*.dump
+*.backup
+seasonkart-backup-before-migrate*.sql
+SeasonKart-source-safe.zip

@@ -1,0 +1,5 @@
+-- Step 4 upgrade (coupons, reviews). Run once: mysql -u root -p seasonkart < migrate5.sql
+ALTER TABLE products ADD COLUMN review_count INT NOT NULL DEFAULT 0;
+ALTER TABLE orders ADD COLUMN coupon_code VARCHAR(20) NULL, ADD COLUMN discount INT NOT NULL DEFAULT 0;
+CREATE TABLE IF NOT EXISTS coupons(id INT AUTO_INCREMENT PRIMARY KEY,code VARCHAR(20) UNIQUE NOT NULL,type ENUM('percent','flat') NOT NULL,value INT NOT NULL,min_order INT NOT NULL DEFAULT 0,max_discount INT NULL,usage_limit INT NULL,uses INT NOT NULL DEFAULT 0,one_per_phone TINYINT NOT NULL DEFAULT 1,expires_at DATETIME NULL,active TINYINT NOT NULL DEFAULT 1,created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
+CREATE TABLE IF NOT EXISTS reviews(id INT AUTO_INCREMENT PRIMARY KEY,product_id INT NOT NULL,customer_id INT NOT NULL,stars TINYINT NOT NULL,body VARCHAR(1000) NOT NULL DEFAULT '',created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,UNIQUE KEY one_review(product_id,customer_id));

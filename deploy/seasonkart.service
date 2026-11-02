@@ -1,0 +1,22 @@
+# systemd alternative to PM2:  sudo cp deploy/seasonkart.service /etc/systemd/system/ && sudo systemctl daemon-reload
+#                              sudo systemctl enable --now seasonkart      (logs: journalctl -u seasonkart -f)
+# Edit User and the two paths if yours differ.
+[Unit]
+Description=SeasonKart shop
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/var/www/seasonkart
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=3
+TimeoutStopSec=15
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/var/www/seasonkart
+
+[Install]
+WantedBy=multi-user.target
