@@ -16,12 +16,20 @@ const {taxLines}=require("../extras");
 const nodemailer=require("nodemailer");
 const sharp=require("sharp");
 const registerCatalog=require("../catalog");
+const {mysqlOptions}=require("../db-config");
 
 test("Sharp is a production dependency because live photo uploads require image processing",()=>{
   const pkg=require("../package.json");
   assert.ok(pkg.dependencies.sharp);
   assert.equal(pkg.devDependencies?.sharp,undefined);
   assert.match(pkg.engines.node,/20\.9/);
+});
+
+test("remote MySQL TLS verifies the server certificate and accepts a configured CA",()=>{
+  assert.equal(mysqlOptions({DB_HOST:"localhost"}).ssl,undefined);
+  const secure=mysqlOptions({DB_HOST:"db.example.test",DB_SSL:"1",DB_SSL_CA:"-----BEGIN CERTIFICATE-----\\nfixture\\n-----END CERTIFICATE-----"});
+  assert.equal(secure.ssl.rejectUnauthorized,true);
+  assert.match(secure.ssl.ca,/BEGIN CERTIFICATE-----\nfixture/);
 });
 
 function mockedHttps(status=204,chunks=[]){

@@ -4,6 +4,7 @@ const {matchesHmacSha256,parseRazorpayPaymentEvent,paymentAlreadyHandled}=requir
 const {deliverSupplierEvent}=require("./supplier-delivery");
 const {calculateSupplierPayout,isValidPayoutAdjustment}=require("./payout-rules");
 const {canSupplierTransition,canAdminTransition,canVerifyDelivery}=require("./order-rules");
+const {mysqlOptions}=require("./db-config");
 const app=express(),PROD=process.env.NODE_ENV==="production",BASE=(process.env.BASE_URL||"").replace(/\/$/,"");
 if((process.env.JWT_SECRET||"").length<32||/change-this/i.test(process.env.JWT_SECRET)){console.error("STOP: set JWT_SECRET in .env to a random string of 32+ characters (e.g. run: node -e \"console.log(require('crypto').randomBytes(48).toString('hex'))\")");process.exit(1)}
 if(process.env.ADMIN_PASSWORD&&process.env.ADMIN_PASSWORD.length<10)console.warn("WARNING: ADMIN_PASSWORD is short - use 10+ characters");
@@ -36,7 +37,7 @@ app.use("/api",rl(600,15,"Too many requests. Please slow down.",{skip:q=>q.path=
 const UP=process.env.UPLOAD_DIR?path.resolve(process.env.UPLOAD_DIR):path.join(__dirname,"public","uploads");fs.mkdirSync(UP,{recursive:true});
 app.use("/uploads",express.static(UP,{setHeaders:res=>res.setHeader("Cache-Control","public, max-age=2592000, immutable")}));
 app.use(express.static(path.join(__dirname,"public"),{index:false,setHeaders:(res,fp)=>{if(fp.includes(path.sep+"uploads"+path.sep))res.setHeader("Cache-Control","public, max-age=2592000, immutable")}}));
-const db=mysql.createPool({host:process.env.DB_HOST,user:process.env.DB_USER,password:process.env.DB_PASS,database:process.env.DB_NAME,waitForConnections:true,connectionLimit:10,queueLimit:0,connectTimeout:10000,enableKeepAlive:true,keepAliveInitialDelay:10000,maxIdle:10,idleTimeout:60000});
+const db=mysql.createPool(mysqlOptions(process.env,{waitForConnections:true,connectionLimit:10,queueLimit:0,connectTimeout:10000,enableKeepAlive:true,keepAliveInitialDelay:10000,maxIdle:10,idleTimeout:60000}));
 const N=notify(db);
 const rz=process.env.RAZORPAY_KEY_ID?new Razorpay({key_id:process.env.RAZORPAY_KEY_ID,key_secret:process.env.RAZORPAY_KEY_SECRET}):null;
 const safeErrorCode=e=>typeof e?.code==="string"&&/^[A-Z0-9_]{1,40}$/.test(e.code)?e.code:typeof e?.name==="string"&&/^[A-Za-z]+$/.test(e.name)?e.name:"application_error";

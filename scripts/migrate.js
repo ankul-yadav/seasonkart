@@ -4,6 +4,7 @@ const fs=require("fs");
 const path=require("path");
 const crypto=require("crypto");
 const {migrationFiles,splitTopLevel,verifySchema}=require("./schema-contract");
+const {mysqlOptions}=require("../db-config");
 
 const ROOT=path.join(__dirname,"..");
 const stripComments=sql=>sql.split(/\r?\n/).filter(line=>!line.trim().startsWith("--")).join("\n");
@@ -123,14 +124,7 @@ async function main(){
     all=false;
   }
   if(!process.env.DB_NAME||!process.env.DB_USER)throw new Error("Set DB_NAME and DB_USER before running migrations.");
-  const connection=await mysql.createConnection({
-    host:process.env.DB_HOST||"localhost",
-    port:Number(process.env.DB_PORT)||3306,
-    user:process.env.DB_USER,
-    password:process.env.DB_PASS,
-    database:process.env.DB_NAME,
-    connectTimeout:10000
-  });
+  const connection=await mysql.createConnection(mysqlOptions(process.env,{connectTimeout:10000}));
   try{
     if(verifyOnly){
       const result=await verifySchema(connection,{all:true});

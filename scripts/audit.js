@@ -2,6 +2,7 @@
 try { require('dotenv').config(); } catch {}
 const fs = require('fs');
 const path = require('path');
+const {mysqlOptions}=require('../db-config');
 const root = path.join(__dirname, '..');
 const checks = [];
 const pass = (name, detail='') => checks.push({status:'PASS', name, detail});
@@ -11,8 +12,8 @@ const has = p => fs.existsSync(path.join(root,p));
 (async () => {
   console.log('\nSeasonKart read-only audit\n');
   const [major, minor] = process.versions.node.split('.').map(Number);
-  if (major > 18 || (major === 18 && minor >= 18)) pass('Node.js version', process.version);
-  else fail('Node.js version', `${process.version}; use Node 20 LTS or newer`);
+  if (major > 20 || (major === 20 && minor >= 9)) pass('Node.js version', process.version);
+  else fail('Node.js version', `${process.version}; use Node 20.9 or newer`);
   for (const f of ['server.js','catalog.js','store.js','extras.js','ops.js','notify.js','otp.js','courier.js','seo.js','public/index.html','public/pages.js','schema.sql','scripts/doctor.js','scripts/backup.sh','scripts/restore.sh']) {
     has(f) ? pass(`File present: ${f}`) : fail(`File missing: ${f}`);
   }
@@ -28,7 +29,7 @@ const has = p => fs.existsSync(path.join(root,p));
   else {
     try {
       const mysql = require('mysql2/promise');
-      const db = await mysql.createConnection({host:env.DB_HOST || 'localhost',port:Number(env.DB_PORT || 3306),user:env.DB_USER,password:env.DB_PASS,database:env.DB_NAME,connectTimeout:5000});
+      const db = await mysql.createConnection(mysqlOptions(env,{connectTimeout:5000}));
       const [[v]] = await db.query('SELECT VERSION() AS version');
       const [tables] = await db.query('SHOW TABLES');
       pass('MySQL connection', `Connected to MySQL ${v.version}; database name: ${env.DB_NAME}`);

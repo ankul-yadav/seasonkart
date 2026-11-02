@@ -2,6 +2,7 @@
 // Existing winter demo products are hidden (active=0), not deleted. Run: npm run seed:megamart
 require('dotenv').config();
 const mysql = require('mysql2/promise');
+const {mysqlOptions}=require('../db-config');
 const {assertSafeDemoSeed}=require('./seed-safety');
 const categories = [
   ['Demo: Mobiles','📱',18,'8517',1],['Demo: Electronics','🎧',18,'8518',2],['Demo: Home & Kitchen','🍳',18,'7323',3],
@@ -26,7 +27,7 @@ const products = [
 ];
 (async()=>{
   assertSafeDemoSeed();
-  const db=await mysql.createConnection({host:process.env.DB_HOST||'localhost',user:process.env.DB_USER,password:process.env.DB_PASS,database:process.env.DB_NAME,charset:'utf8mb4'});
+  const db=await mysql.createConnection(mysqlOptions(process.env,{charset:'utf8mb4'}));
   try {
     const required=['admins','suppliers','products','categories'];
     const [rows]=await db.query('SHOW TABLES'); const have=new Set(rows.map(r=>Object.values(r)[0]));

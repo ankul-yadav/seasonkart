@@ -1,6 +1,7 @@
 // "Is my setup OK?"  ->  npm run doctor      (checks Node, packages, .env, MySQL, tables and which optional services are on)
 try{require("dotenv").config()}catch(e){}
 const fs=require("fs"),path=require("path"),E=process.env;let fails=0,warns=0;
+const {mysqlOptions}=require("../db-config");
 const ok=m=>console.log("  ✅ "+m),bad=(m,fix)=>{fails++;console.log("  ❌ "+m+(fix?"\n     -> "+fix:""))},warn=(m,why)=>{warns++;console.log("  ⚠️  "+m+(why?"\n     "+why:""))};
 const ROOT=path.join(__dirname,"..");process.chdir(ROOT);const UPLOAD_ROOT=path.resolve(E.UPLOAD_DIR||path.join(ROOT,"public","uploads"));
 (async()=>{
@@ -21,7 +22,7 @@ const ROOT=path.join(__dirname,"..");process.chdir(ROOT);const UPLOAD_ROOT=path.
  }
  console.log("\n4. MySQL database");
  try{
-  const my=require("mysql2/promise"),c=await my.createConnection({host:E.DB_HOST||"localhost",user:E.DB_USER,password:E.DB_PASS,database:E.DB_NAME,connectTimeout:6000});
+  const my=require("mysql2/promise"),c=await my.createConnection(mysqlOptions(E,{connectTimeout:6000}));
   const[[v]]=await c.query("SELECT VERSION() v");ok("Connected to MySQL "+v.v);
   const have=new Set((await c.query("SHOW TABLES"))[0].map(r=>Object.values(r)[0])),need=["admins","suppliers","products","orders","order_items","customers","coupons","reviews","addresses","wishlist","product_images","product_variants","categories","settings","otps"],lack=need.filter(t=>!have.has(t));
   lack.length?bad("Missing tables: "+lack.join(", "),have.size?"Your database is older than this version. Run:  npm run migrate":"The tables are not created yet. Import schema.sql (see LOCAL-SETUP.md step 4)"):ok("All tables exist");
